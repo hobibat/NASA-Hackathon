@@ -1,0 +1,976 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Finding What Moves</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="A cinematic tour of our SPHEREx search for moving objects and Planet X. NASA Space Apps Challenge 2026.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one long scroll journey over a fixed, cursor-reactive starfield; each chapter is a centered column that widens for the sky map. Deliberately dark-only. */
+:root {
+  --void: #06051a;
+  --deep: #0e0b2c;
+  --panel: rgba(18, 14, 52, 0.62);
+  --line: rgba(160, 150, 255, 0.18);
+  --ink: #ece9ff;
+  --dim: #a9a4d4;
+  --faint: #6f6a9c;
+  --violet: #a385ff;
+  --cyan: #62e3ff;
+  --rose: #ff6fae;
+  --gold: #ffc66e;
+  --mint: #7cf5c8;
+  --noise: #8a85b6;
+
+  --f-display: "Instrument Serif", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  --f-body: "Hanken Grotesk", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+
+  --step--1: clamp(0.82rem, 0.79rem + 0.15vw, 0.9rem);
+  --step-0: clamp(1rem, 0.96rem + 0.2vw, 1.1rem);
+  --step-1: clamp(1.25rem, 1.15rem + 0.5vw, 1.5rem);
+  --step-2: clamp(1.7rem, 1.45rem + 1.2vw, 2.4rem);
+  --step-3: clamp(2.4rem, 1.9rem + 2.6vw, 4rem);
+  --step-4: clamp(3.4rem, 2.4rem + 6vw, 8.5rem);
+
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; background: var(--void); }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  background: var(--void);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: var(--step-0);
+  line-height: 1.6;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+::selection { background: rgba(163, 133, 255, 0.45); color: #fff; }
+
+#sky { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; display: block; }
+#halo {
+  position: fixed; left: 0; top: 0; width: 340px; height: 340px; margin: -170px 0 0 -170px;
+  border-radius: 50%; pointer-events: none; z-index: 1;
+  background: radial-gradient(circle, rgba(163,133,255,0.16) 0%, rgba(98,227,255,0.06) 38%, transparent 68%);
+  mix-blend-mode: screen; opacity: 0; transition: opacity .5s ease;
+  will-change: transform;
+}
+body.has-pointer #halo { opacity: 1; }
+
+main, footer { position: relative; z-index: 2; }
+.wrap {
+  width: 100%; max-width: 1120px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.narrow { max-width: 760px; }
+
+/* ---------- type ---------- */
+h1, h2, h3 { font-family: var(--f-display); font-weight: 400; line-height: 1.02; margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
+h2 { font-size: var(--step-3); }
+h3 { font-size: var(--step-1); line-height: 1.2; }
+em { font-style: italic; }
+p { margin: 0; max-width: 64ch; }
+.eyebrow {
+  font-family: var(--f-mono); font-size: var(--step--1); letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--cyan); display: inline-flex; gap: .6em; align-items: center;
+}
+.eyebrow .num { color: var(--violet); }
+.lead { font-size: var(--step-1); line-height: 1.5; color: var(--dim); }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.muted { color: var(--dim); }
+a { color: var(--cyan); text-underline-offset: 3px; }
+:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; border-radius: 6px; }
+
+/* ---------- hero ---------- */
+.hero { min-height: 92svh; display: grid; align-content: center; padding-block: 18vh 12vh; }
+.hero-inner { display: grid; gap: 1.6rem; }
+.hero h1 { font-size: var(--step-4); line-height: .92; }
+.hero h1 .line { display: block; }
+.hero h1 em {
+  background: linear-gradient(100deg, var(--violet) 0%, var(--cyan) 45%, var(--rose) 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  background-size: 200% 100%; animation: sheen 9s ease-in-out infinite alternate;
+  padding-right: .08em;
+}
+@keyframes sheen { from { background-position: 0% 50%; } to { background-position: 100% 50%; } }
+.hero .lead { max-width: 46ch; }
+.hero-foot { display: flex; flex-wrap: wrap; gap: 1rem 2rem; align-items: center; margin-top: 1rem; }
+.cue {
+  display: inline-flex; align-items: center; gap: .7rem; color: var(--ink); text-decoration: none;
+  font-family: var(--f-mono); font-size: var(--step--1); letter-spacing: .1em; text-transform: uppercase;
+  padding: .75rem 1.1rem; border: 1px solid var(--line); border-radius: 999px; background: rgba(14,11,44,.45);
+  backdrop-filter: blur(6px); transition: border-color .3s, background .3s;
+}
+.cue:hover { border-color: var(--violet); background: rgba(40,28,100,.5); }
+.cue .arrow { display: inline-block; animation: bob 2.2s ease-in-out infinite; }
+@keyframes bob { 50% { transform: translateY(4px); } }
+.readout { font-family: var(--f-mono); font-size: var(--step--1); color: var(--faint); font-variant-numeric: tabular-nums; }
+.readout b { color: var(--dim); font-weight: 500; }
+
+/* ---------- chapters ---------- */
+.chapter { padding-block: clamp(5rem, 14vh, 9rem); }
+.chapter-head { display: grid; gap: 1.1rem; margin-bottom: clamp(2rem, 5vh, 3.5rem); }
+.rise { transition: transform 1.1s cubic-bezier(.2,.7,.1,1), opacity 1.1s ease; }
+.js .rise:not(.in) { transform: translateY(26px); opacity: .55; }
+
+.facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; margin-top: 2.5rem; }
+.fact { background: rgba(10, 8, 34, .82); padding: 1.2rem 1.1rem; display: grid; gap: .25rem; align-content: start; min-width: 0; }
+.fact .k { font-family: var(--f-mono); font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; color: var(--faint); }
+.fact .v { font-family: var(--f-display); font-size: var(--step-2); line-height: 1.1; }
+.fact .s { font-size: var(--step--1); color: var(--dim); }
+
+.steps { list-style: none; margin: 3rem 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5rem; counter-reset: s; }
+.steps li { display: grid; gap: .5rem; align-content: start; padding-top: 1.1rem; border-top: 1px solid var(--line); min-width: 0; }
+.steps li::before { counter-increment: s; content: "Step " counter(s); font-family: var(--f-mono); font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; color: var(--violet); }
+.steps p { color: var(--dim); font-size: var(--step--1); line-height: 1.55; }
+
+/* ---------- sky map ---------- */
+.map-layout { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: clamp(1.25rem, 3vw, 2.5rem); align-items: start; }
+.map-frame { position: relative; width: 100%; max-width: 100%; aspect-ratio: 1 / 1; border-radius: 18px; overflow: hidden; border: 1px solid var(--line); background: radial-gradient(ellipse at 50% 40%, #120e3a 0%, #070620 70%); box-shadow: 0 30px 80px -30px rgba(80, 50, 200, .45); touch-action: manipulation; }
+#map { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: crosshair; }
+.map-hud { position: absolute; left: 12px; right: 12px; bottom: 10px; display: flex; justify-content: space-between; gap: 1rem; font-family: var(--f-mono); font-size: .7rem; color: var(--faint); pointer-events: none; font-variant-numeric: tabular-nums; }
+.map-hud .compass { color: var(--dim); }
+.controls { display: grid; gap: 1rem; margin-top: 1rem; }
+.legend { display: flex; flex-wrap: wrap; gap: .5rem; }
+.chip {
+  display: inline-flex; align-items: center; gap: .5rem; font: inherit; font-size: var(--step--1);
+  color: var(--ink); background: rgba(16, 12, 48, .7); border: 1px solid var(--line); border-radius: 999px;
+  padding: .45rem .85rem; cursor: pointer; transition: opacity .25s, border-color .25s;
+}
+.chip .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--c); box-shadow: 0 0 10px var(--c); }
+.chip .n { font-family: var(--f-mono); color: var(--faint); font-size: .75rem; }
+.chip[aria-pressed="false"] { opacity: .42; }
+.chip[aria-pressed="false"] .dot { box-shadow: none; }
+.chip:hover { border-color: var(--c); }
+.slider { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: .9rem; align-items: center; font-size: var(--step--1); color: var(--dim); }
+.slider output { font-family: var(--f-mono); color: var(--ink); min-width: 4.5ch; text-align: right; }
+input[type="range"] { width: 100%; accent-color: var(--violet); }
+
+.detail { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: clamp(1.1rem, 2.5vw, 1.6rem); backdrop-filter: blur(10px); display: grid; gap: 1rem; min-width: 0; }
+.badge { display: inline-flex; align-items: center; gap: .5rem; width: fit-content; font-family: var(--f-mono); font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; padding: .32rem .7rem; border-radius: 999px; color: var(--c); border: 1px solid color-mix(in srgb, var(--c) 45%, transparent); background: color-mix(in srgb, var(--c) 12%, transparent); }
+.detail h3 { font-size: var(--step-2); }
+.detail .why { color: var(--dim); font-size: var(--step--1); }
+.kv { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: .55rem 1rem; margin: 0; font-size: var(--step--1); }
+.kv dt { color: var(--faint); }
+.kv dd { margin: 0; font-family: var(--f-mono); font-variant-numeric: tabular-nums; text-align: right; overflow-wrap: anywhere; }
+.kv dd small { display: block; color: var(--faint); font-family: var(--f-body); font-size: .75rem; }
+.picker { display: flex; flex-wrap: wrap; gap: .4rem; }
+.picker button { font-family: var(--f-mono); font-size: .75rem; color: var(--dim); background: transparent; border: 1px solid var(--line); border-radius: 8px; padding: .3rem .55rem; cursor: pointer; display: inline-flex; gap: .4rem; align-items: center; }
+.picker button .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--c); }
+.picker button[aria-current="true"] { color: var(--ink); border-color: var(--c); background: color-mix(in srgb, var(--c) 14%, transparent); }
+.note { font-size: .78rem; color: var(--faint); }
+
+/* ---------- blink ---------- */
+.blinks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(1rem, 3vw, 2rem); }
+.blink { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; overflow: hidden; display: grid; min-width: 0; backdrop-filter: blur(8px); transition: transform .5s cubic-bezier(.2,.7,.1,1), border-color .4s; }
+.blink:hover { border-color: color-mix(in srgb, var(--gold) 55%, transparent); }
+.blink .media { position: relative; background: #ffffff; aspect-ratio: 1 / 1; max-width: 100%; display: grid; place-items: center; overflow: hidden; }
+.blink .media img { width: 100%; height: 100%; object-fit: contain; display: block; image-rendering: pixelated; }
+.blink .media.wide img { object-fit: contain; }
+.blink .body { padding: 1.1rem 1.25rem 1.3rem; display: grid; gap: .7rem; }
+.blink .body h3 { font-size: var(--step-2); }
+.toggle { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 3px; width: fit-content; }
+.toggle button { font: inherit; font-size: .8rem; color: var(--dim); background: none; border: 0; border-radius: 999px; padding: .35rem .8rem; cursor: pointer; }
+.toggle button[aria-pressed="true"] { background: rgba(163,133,255,.22); color: var(--ink); }
+.tracks { margin: clamp(1.5rem, 4vw, 2.5rem) 0 0; display: grid; gap: .6rem; }
+.tracks img { width: 100%; border-radius: 14px; border: 1px solid var(--line); background: #fff; display: block; }
+.tracks figcaption { font-size: var(--step--1); color: var(--faint); }
+
+/* ---------- planet x ---------- */
+.timeline { position: relative; margin: 1rem 0 0; padding: 3.2rem 0 4.2rem; }
+.timeline .rail { position: relative; height: 2px; background: linear-gradient(90deg, var(--cyan), var(--violet) 50%, var(--rose)); border-radius: 2px; }
+.timeline .gap-arc { position: absolute; left: 6%; right: 4%; top: .4rem; height: 2.4rem; border: 1px dashed rgba(169,164,212,.35); border-bottom: 0; border-radius: 50% 50% 0 0 / 100% 100% 0 0; }
+.timeline .gap-label { position: absolute; left: 50%; top: 0; transform: translateX(-50%); font-family: var(--f-mono); font-size: .72rem; color: var(--dim); background: var(--void); padding: 0 .6rem; white-space: nowrap; }
+.visit { position: absolute; top: 50%; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; background: var(--c); box-shadow: 0 0 0 4px color-mix(in srgb, var(--c) 22%, transparent), 0 0 22px var(--c); }
+.visit-label { position: absolute; top: calc(100% + 1.2rem); font-family: var(--f-mono); font-size: .75rem; color: var(--dim); white-space: nowrap; }
+.visit-label b { display: block; color: var(--ink); font-weight: 500; }
+.logic { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; margin-top: 1rem; }
+.logic div { border-top: 1px solid var(--line); padding-top: 1rem; display: grid; gap: .4rem; align-content: start; min-width: 0; }
+.logic h3 { font-size: var(--step-1); }
+.logic p { font-size: var(--step--1); color: var(--dim); }
+.results { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; margin-top: 3rem; }
+.result { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 1.3rem; display: grid; gap: .35rem; align-content: start; min-width: 0; }
+.result .v { font-family: var(--f-display); font-size: var(--step-4); line-height: .9; color: var(--ink); }
+.result .k { font-weight: 600; }
+.result p { font-size: var(--step--1); color: var(--dim); }
+.result.hi { border-color: color-mix(in srgb, var(--rose) 50%, transparent); box-shadow: 0 0 60px -20px rgba(255,111,174,.45); }
+.verdict { margin-top: clamp(3rem, 8vh, 5rem); display: grid; gap: 1.2rem; text-align: left; }
+.verdict h3 { font-size: var(--step-3); line-height: 1.05; }
+.verdict h3 em { color: var(--gold); }
+
+/* ---------- chapter rail ---------- */
+.rail-nav { position: fixed; right: max(14px, env(safe-area-inset-right, 0px)); top: 50%; transform: translateY(-50%); z-index: 5; display: grid; gap: .9rem; }
+.rail-nav a { display: grid; grid-template-columns: auto auto; align-items: center; gap: .6rem; justify-content: end; text-decoration: none; color: var(--faint); font-family: var(--f-mono); font-size: .68rem; letter-spacing: .1em; text-transform: uppercase; }
+.rail-nav a span { opacity: 0; transform: translateX(6px); transition: opacity .3s, transform .3s; }
+.rail-nav a:hover span, .rail-nav a:focus-visible span, .rail-nav a.on span { opacity: 1; transform: none; }
+.rail-nav a i { width: 8px; height: 8px; border-radius: 50%; border: 1px solid var(--dim); transition: background .3s, box-shadow .3s, transform .3s; }
+.rail-nav a.on { color: var(--ink); }
+.rail-nav a.on i { background: var(--cyan); border-color: var(--cyan); box-shadow: 0 0 12px var(--cyan); transform: scale(1.25); }
+
+footer { padding-block: 4rem 3rem; border-top: 1px solid var(--line); margin-top: 4rem; }
+footer .wrap { display: grid; gap: .6rem; font-size: var(--step--1); color: var(--faint); }
+#data-note[hidden] { display: none; }
+
+/* ---------- responsive ---------- */
+@media (max-width: 900px) {
+  .map-layout { grid-template-columns: minmax(0, 1fr); }
+  .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 720px) {
+  .steps, .logic, .results, .blinks { grid-template-columns: minmax(0, 1fr); }
+  .rail-nav { display: none; }
+  .hero { min-height: 84svh; padding-block: 14vh 8vh; }
+}
+@media (max-width: 420px) {
+  .facts { grid-template-columns: minmax(0, 1fr); }
+  .visit-label { font-size: .68rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rise, .js .rise:not(.in) { transform: none !important; opacity: 1 !important; transition: none; }
+  .hero h1 em, .cue .arrow { animation: none; }
+}
+</style>
+</head>
+<body>
+
+
+<canvas id="sky" aria-hidden="true"></canvas>
+<div id="halo" aria-hidden="true"></div>
+
+<nav class="rail-nav" aria-label="Chapters">
+  <a href="#top" data-for="top"><span>Start</span><i></i></a>
+  <a href="#patch" data-for="patch"><span>The patch</span><i></i></a>
+  <a href="#movers" data-for="movers"><span>Movers</span><i></i></a>
+  <a href="#blink" data-for="blink"><span>Blink</span><i></i></a>
+  <a href="#planetx" data-for="planetx"><span>Planet X</span><i></i></a>
+</nav>
+
+<main>
+  <header class="hero" id="top" data-chapter="0">
+    <div class="wrap">
+      <div class="hero-inner" id="hero-inner">
+        <span class="eyebrow">NASA Space Apps Challenge 2026 · Planet X and SPHEREx</span>
+        <h1><span class="line">Finding</span><span class="line"><em>What Moves</em></span></h1>
+        <p class="lead">Stars stay put. Asteroids drift across the sky in minutes. A distant Planet X would crawl over months. We searched NASA's SPHEREx infrared images for anything that moves.</p>
+        <div class="hero-foot">
+          <a class="cue" href="#patch">Scroll to dive in <span class="arrow" aria-hidden="true">↓</span></a>
+          <span class="readout" id="readout" aria-live="off">Move your cursor through the sky</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section class="chapter" id="patch" data-chapter="1" aria-labelledby="patch-h">
+    <div class="wrap">
+      <div class="chapter-head rise narrow">
+        <span class="eyebrow"><span class="num">I</span> The patch of sky</span>
+        <h2 id="patch-h">A square of sky <em>three moons wide</em></h2>
+        <p class="lead">SPHEREx is a NASA telescope that maps the entire sky in infrared light. We took one small square of its survey and looked at it four times in a row, a minute and a half apart.</p>
+      </div>
+      <div class="facts rise" id="facts">
+        <div class="fact"><span class="k">Area searched</span><span class="v mono" id="f-area">1.5° × 1.5°</span><span class="s">About three full Moons across</span></div>
+        <div class="fact"><span class="k">Snapshots</span><span class="v" id="f-frames">4 frames</span><span class="s" id="f-span">Over 6.5 minutes</span></div>
+        <div class="fact"><span class="k">Infrared band</span><span class="v" id="f-band">D4</span><span class="s">Light invisible to our eyes</span></div>
+        <div class="fact"><span class="k">Detection bar</span><span class="v" id="f-sigma">5σ</span><span class="s">5× brighter than the noise</span></div>
+      </div>
+      <ol class="steps rise">
+        <li><h3>Find every dot</h3><p>In each of the four frames, we mark every spot of light that stands clearly above the background noise.</p></li>
+        <li><h3>Remove what stays still</h3><p>Stars and galaxies sit in the same spot in every frame. Anything that never moves gets crossed off.</p></li>
+        <li><h3>Connect the movers</h3><p>What's left is joined frame to frame. A real asteroid traces a straight line at a steady speed. Random noise rarely does.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="chapter" id="movers" data-chapter="2" aria-labelledby="movers-h">
+    <div class="wrap">
+      <div class="chapter-head rise narrow">
+        <span class="eyebrow"><span class="num">II</span> Everything that moved</span>
+        <h2 id="movers-h">Nine dots that <em>refused to sit still</em></h2>
+        <p class="lead">Each glowing point is something our pipeline caught moving. Its tail shows where it is heading. Hover over a dot to see it, or tap to read its story.</p>
+      </div>
+      <div class="map-layout">
+        <div class="rise">
+          <div class="map-frame">
+            <canvas id="map" role="img" aria-label="Sky map of the search area with moving-object candidates"></canvas>
+            <div class="map-hud"><span id="map-coord">RA — · Dec —</span><span class="compass">N ↑ · E ←</span></div>
+          </div>
+          <div class="controls">
+            <div class="legend" id="legend" aria-label="Show or hide each type"></div>
+            <label class="slider" for="trail">Tail length
+              <input id="trail" type="range" min="2" max="24" step="1" value="10">
+              <output id="trail-out" for="trail">10 h</output>
+            </label>
+            <p class="note">Tails show how far each object travels in the chosen number of hours at its measured speed. Real motion over our 6.5 minutes is too small to see at this zoom. Faint background dots are decoration.</p>
+          </div>
+        </div>
+        <aside class="detail rise" id="detail" aria-live="polite"></aside>
+      </div>
+    </div>
+  </section>
+
+  <section class="chapter" id="blink" data-chapter="3" aria-labelledby="blink-h">
+    <div class="wrap">
+      <div class="chapter-head rise narrow">
+        <span class="eyebrow"><span class="num">III</span> Blink and you'll see it</span>
+        <h2 id="blink-h">Two asteroids, <em>caught in the act</em></h2>
+        <p class="lead">In 1930, Clyde Tombaugh found Pluto by flipping quickly between two photos of the same sky. Anything that jumps is moving. Our pipeline does the same thing, and these two hits match asteroids already in NASA's catalogue, which tells us the method works.</p>
+      </div>
+      <div class="blinks" id="blinks"></div>
+      <figure class="tracks rise">
+        <img src="figures/asteroid_tracks.png" alt="Plot of asteroid tracks found by the notebook across the search area" loading="lazy">
+        <figcaption>Tracks from our notebook, plotted across the search area.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="chapter" id="planetx" data-chapter="4" aria-labelledby="px-h">
+    <div class="wrap">
+      <div class="chapter-head rise narrow">
+        <span class="eyebrow"><span class="num">IV</span> The Planet X test</span>
+        <h2 id="px-h">Too slow for minutes. <em>Try six months.</em></h2>
+        <p class="lead">A planet far beyond Neptune barely moves in an hour. So we compared the same sky in June and again in December, when Earth's own trip around the Sun makes a distant world appear to shift.</p>
+      </div>
+
+      <div class="timeline rise" id="timeline" aria-label="Timeline of the four SPHEREx visits">
+        <div class="gap-arc" aria-hidden="true"></div>
+        <span class="gap-label" id="gap-label">≈ 6 months apart</span>
+        <div class="rail" id="rail"></div>
+      </div>
+
+      <div class="logic rise">
+        <div><h3>Steady in June</h3><p>It must show up in all three June visits, in the same spot, well above the noise.</p></div>
+        <div><h3>Gone in December</h3><p>By December it must have left that spot. Stars never leave, so this rules them out.</p></div>
+        <div><h3>Found nearby</h3><p id="logic-3">It should reappear 0.1° to 0.4° away, with a brightness between ⅓× and 3× of its June self.</p></div>
+      </div>
+
+      <div class="results rise" id="results"></div>
+
+      <div class="verdict rise narrow">
+        <span class="eyebrow">The verdict</span>
+        <h3 id="verdict-h">No Planet X here, <em>down to magnitude 17.</em></h3>
+        <p class="lead" id="verdict-p">That limit is about 25,000 times fainter than the dimmest star you can see with your eyes on a dark night. A clear "no" with a measured limit is a real result: it tells the next search where not to look.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span id="credit">Data: SPHEREx QR2 spectral images, NASA/IPAC IRSA.</span>
+    <span id="gen"></span>
+    <span id="data-note" hidden>Showing a saved copy of the results. To read the live JSON files, open this page through a local server.</span>
+  </div>
+</footer>
+
+<script type="application/json" id="fallback-data">{"candidates.json": {"generated_utc": "2026-10-19T20:28:37+00:00", "source": "SPHEREx QR2 spectral images (NASA/IPAC IRSA)", "visit": "2025W25_1B_0085", "band": "SPHEREx-D4", "frame_mjds": [60842.377974, 60842.379466, 60842.380958, 60842.382468], "search_area": {"center_ra_deg": 1.8334861111111138, "center_dec_deg": -0.5133981481481481, "size_deg": 1.5}, "method": {"detection_threshold_sigma": 5, "persistent_min_frames": 3, "star_check_threshold_sigma": 3, "match_radius_arcsec": 6, "min_speed_arcsec_per_hour": 27.769053130103377}, "candidates": [{"id": 0, "ra_deg": 2.062851352267397, "dec_deg": -0.9336380438289478, "mjd": 60842.377974, "utc": "2025-06-16T09:04:16.954", "speed_arcsec_per_hour": 64.83136766037784, "speed_ra_arcsec_per_hour": -15.631445154108434, "speed_dec_arcsec_per_hour": 62.91871069172655, "direction_deg": 346.0479790878454, "path_wobble_arcsec": 1.2649154705924703, "frames_seen": 3, "frames_covering": 4, "noise_lookalikes_expected": 0.0, "flux": 0.9409565329551697, "verdict": "likely noise (unusual direction)"}, {"id": 1, "ra_deg": 1.5885762321752022, "dec_deg": 0.061494404596721064, "mjd": 60842.377974, "utc": "2025-06-16T09:04:16.954", "speed_arcsec_per_hour": 49.177957636803825, "speed_ra_arcsec_per_hour": 48.92959117662301, "speed_dec_arcsec_per_hour": 4.936256133529413, "direction_deg": 84.23921313167504, "path_wobble_arcsec": 0.33052825413351683, "frames_seen": 3, "frames_covering": 4, "noise_lookalikes_expected": 0.0, "flux": 0.4510563015937805, "verdict": "KNOWN: 2098 Zyskin (1972 QE)"}, {"id": 2, "ra_deg": 1.7507463313388065, "dec_deg": -0.14300354365601345, "mjd": 60842.377974, "utc": "2025-06-16T09:04:16.954", "speed_arcsec_per_hour": 45.796773903266946, "speed_ra_arcsec_per_hour": 30.866077358000503, "speed_dec_arcsec_per_hour": 33.83237751735579, "direction_deg": 42.37493662395982, "path_wobble_arcsec": 0.43861427719767576, "frames_seen": 3, "frames_covering": 4, "noise_lookalikes_expected": 0.17427872363800204, "flux": 0.4146031439304352, "verdict": "STRONG candidate"}, {"id": 3, "ra_deg": 1.9205956851047814, "dec_deg": -0.31240209857239276, "mjd": 60842.377974, "utc": "2025-06-16T09:04:16.954", "speed_arcsec_per_hour": 43.1773462934356, "speed_ra_arcsec_per_hour": 36.64526887110434, "speed_dec_arcsec_per_hour": 22.83434917635551, "direction_deg": 58.07219816250095, "path_wobble_arcsec": 0.36921990411800665, "frames_seen": 3, "frames_covering": 4, "noise_lookalikes_expected": 0.13893308870185003, "flux": 0.35463929176330566, "verdict": "KNOWN: 1958 Chandra (1970 SB)"}, {"id": 4, "ra_deg": 2.2752426354509137, "dec_deg": -0.6347159915205162, "mjd": 60842.377974, "utc": "2025-06-16T09:04:16.954", "speed_arcsec_per_hour": 35.425470757229974, "speed_ra_arcsec_per_hour": -33.319306690286695, "speed_dec_arcsec_per_hour": -12.032779398375588, "direction_deg": 250.14355719150996, "path_wobble_arcsec": 0.6213707302816466, "frames_seen": 3, "frames_covering": 4, "noise_lookalikes_expected": 7.1444568699512, "flux": 0.7176473140716553, "verdict": "likely noise (unusual direction)"}, {"id": 5, "ra_deg": 2.1596194869758527, "dec_deg": -0.41644765535812384, "mjd": 60842.377974, "utc": "2025-06-16T09:04:16.954", "speed_arcsec_per_hour": 34.77501814167518, "speed_ra_arcsec_per_hour": 27.000332635378424, "speed_dec_arcsec_per_hour": 21.91538099903255, "direction_deg": 50.934771069896755, "path_wobble_arcsec": 0.8228560210198367, "frames_seen": 3, "frames_covering": 4, "noise_lookalikes_expected": 0.7027431371081603, "flux": 0.3641749918460846, "verdict": "weak candidate (noise could look like this)"}, {"id": 6, "ra_deg": 1.8026662409401224, "dec_deg": -0.013511670168161396, "mjd": 60842.377974, "utc": "2025-06-16T09:04:16.954", "speed_arcsec_per_hour": 33.53797200069679, "speed_ra_arcsec_per_hour": -27.48547196235564, "speed_dec_arcsec_per_hour": 19.218334915545725, "direction_deg": 304.9619359321823, "path_wobble_arcsec": 0.18397478000100123, "frames_seen": 3, "frames_covering": 4, "noise_lookalikes_expected": 4.948290209918003, "flux": 0.9461569786071777, "verdict": "likely noise (unusual direction)"}, {"id": 7, "ra_deg": 1.5540141327796377, "dec_deg": -0.5892131284240302, "mjd": 60842.377974, "utc": "2025-06-16T09:04:16.954", "speed_arcsec_per_hour": 33.032025218331306, "speed_ra_arcsec_per_hour": -12.582318508836998, "speed_dec_arcsec_per_hour": 30.541773867387814, "direction_deg": 337.6097700245383, "path_wobble_arcsec": 0.22575876048211058, "frames_seen": 3, "frames_covering": 4, "noise_lookalikes_expected": 4.247055357228231, "flux": 0.34649771451950073, "verdict": "likely noise (unusual direction)"}, {"id": 8, "ra_deg": 2.110256461190051, "dec_deg": -0.25188364934628804, "mjd": 60842.377974, "utc": "2025-06-16T09:04:16.954", "speed_arcsec_per_hour": 32.89089530002026, "speed_ra_arcsec_per_hour": -30.72416371095157, "speed_dec_arcsec_per_hour": 11.740390023314463, "direction_deg": 290.91297472310123, "path_wobble_arcsec": 0.24888324420344748, "frames_seen": 3, "frames_covering": 4, "noise_lookalikes_expected": 6.429649441218195, "flux": 0.35921403765678406, "verdict": "likely noise (unusual direction)"}]}, "planetx_search.json": {"generated_utc": "2026-10-19T20:28:51+00:00", "source": "SPHEREx QR2 spectral images (NASA/IPAC IRSA)", "band": "SPHEREx-D4", "visits": [{"obs_id": "2025W25_1B_0085_1", "mjd": 60842.377974, "utc": "2025-06-16T09:04:16.954"}, {"obs_id": "2025W25_2A_0500_1", "mjd": 60848.016684, "utc": "2025-06-22T00:24:01.498"}, {"obs_id": "2025W26_2A_0020_1", "mjd": 60852.568537, "utc": "2025-06-26T13:38:41.597"}, {"obs_id": "2025W50_2A_0774_1", "mjd": 61023.621067, "utc": "2025-12-14T14:54:20.189"}], "area_searched_sq_deg": 0.3852291666666667, "method": {"steady_in": "all 3 June visits (5x noise, 6 arcsec match)", "absent_in": "December visit (3x noise)", "brightness_cut": "brighter than the median source of the image", "pair_shift_deg": [0.1, 0.4], "pair_flux_ratio": [0.3333333333333333, 3]}, "approx_brightness_limit_V": 17, "june_only": [], "december_only": [{"ra_deg": 0.6404936725102175, "dec_deg": 0.18616441533851938, "flux": 0.8360643982887268}], "pairs": [], "pairs_expected_by_chance": 0.0}}</script>
+<script>
+(() => {
+  "use strict";
+  document.documentElement.classList.add("js");
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const finePointer = matchMedia("(pointer: fine)").matches;
+  const $ = (s, r = document) => r.querySelector(s);
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const lerp = (a, b, t) => a + (b - a) * t;
+
+  /* ---------- shared pointer ---------- */
+  const P = { x: -9999, y: -9999, sx: -9999, sy: -9999, on: false, nx: 0, ny: 0 };
+  const halo = $("#halo");
+  function onMove(x, y) {
+    P.x = x; P.y = y;
+    if (!P.on) { P.sx = x; P.sy = y; }
+    P.on = true;
+    P.nx = x / innerWidth - 0.5; P.ny = y / innerHeight - 0.5;
+    if (finePointer) document.body.classList.add("has-pointer");
+    spawnTrail(x, y);
+  }
+  addEventListener("pointermove", e => onMove(e.clientX, e.clientY), { passive: true });
+  addEventListener("pointerdown", e => { onMove(e.clientX, e.clientY); burst(e.clientX, e.clientY); }, { passive: true });
+  document.addEventListener("pointerleave", () => { P.on = false; document.body.classList.remove("has-pointer"); });
+  addEventListener("pointerup", e => { if (e.pointerType !== "mouse") setTimeout(() => { P.on = false; }, 900); }, { passive: true });
+
+  /* ---------- starfield ---------- */
+  const sky = $("#sky"), ctx = sky.getContext("2d");
+  let W = 0, H = 0, DPR = 1, stars = [];
+  const STAR_COLORS = ["#ffffff", "#d4e2ff", "#dccbff", "#a6ecff", "#ffe3b8", "#ffc4e6"];
+  const STAR_W = [40, 22, 16, 10, 7, 5];
+  const sprites = {};
+  function sprite(color) {
+    if (sprites[color]) return sprites[color];
+    const c = document.createElement("canvas"); c.width = c.height = 64;
+    const g = c.getContext("2d"), gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+    gr.addColorStop(0, "rgba(255,255,255,1)");
+    gr.addColorStop(0.18, color);
+    gr.addColorStop(0.45, color + "55");
+    gr.addColorStop(1, color + "00");
+    g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
+    return (sprites[color] = c);
+  }
+  function pickColor() {
+    let r = Math.random() * 100;
+    for (let i = 0; i < STAR_W.length; i++) { if ((r -= STAR_W[i]) < 0) return STAR_COLORS[i]; }
+    return STAR_COLORS[0];
+  }
+  function resizeSky() {
+    W = innerWidth; H = innerHeight; DPR = Math.min(devicePixelRatio || 1, 1.75);
+    sky.width = Math.round(W * DPR); sky.height = Math.round(H * DPR);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    const n = Math.round(clamp(W * H / 1700, 260, 950));
+    stars = Array.from({ length: n }, () => {
+      const z = Math.pow(Math.random(), 1.6) * 0.85 + 0.15;
+      return { x: Math.random() * W, y: Math.random() * H, z, r: 0.35 + z * 1.6 + (Math.random() < 0.03 ? 1.4 : 0),
+        ph: Math.random() * Math.PI * 2, sp: 0.6 + Math.random() * 1.8, c: pickColor(), ox: 0, oy: 0, glow: 0, px: 0, py: 0 };
+    });
+  }
+
+  // nebula palette per chapter
+  const NEB = [
+    [[118, 76, 255], [40, 140, 255], [220, 70, 180]],
+    [[40, 120, 255], [40, 210, 230], [110, 70, 240]],
+    [[90, 60, 230], [230, 70, 150], [40, 160, 255]],
+    [[40, 200, 220], [140, 90, 255], [255, 170, 90]],
+    [[230, 70, 150], [110, 60, 240], [255, 180, 90]],
+  ];
+  let chapter = 0;
+  const neb = NEB[0].map(c => c.slice());
+
+  const trail = [], sparks = [], meteors = [];
+  let lastTrail = 0;
+  function spawnTrail(x, y) {
+    if (reduce) return;
+    const now = performance.now();
+    if (now - lastTrail < 16) return; lastTrail = now;
+    trail.push({ x, y, vx: (Math.random() - .5) * .4, vy: (Math.random() - .5) * .4 + .15, life: 1, c: Math.random() < .5 ? "#a385ff" : "#62e3ff", r: 1 + Math.random() * 2 });
+    if (trail.length > 70) trail.shift();
+  }
+  function burst(x, y) {
+    if (reduce) return;
+    for (let i = 0; i < 26; i++) {
+      const a = Math.random() * Math.PI * 2, s = 1 + Math.random() * 4;
+      sparks.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 1, c: ["#ffffff", "#a385ff", "#62e3ff", "#ff6fae", "#ffc66e"][i % 5], r: 1.5 + Math.random() * 2.5 });
+    }
+    sparks.push({ ring: true, x, y, life: 1, r: 4 });
+  }
+  let nextMeteor = 2500;
+  function spawnMeteor() {
+    const fromLeft = Math.random() < .5;
+    const x = fromLeft ? Math.random() * W * .6 : W * .4 + Math.random() * W * .6;
+    const ang = (fromLeft ? 0.35 : Math.PI - 0.35) + (Math.random() - .5) * .3;
+    const sp = 9 + Math.random() * 7;
+    meteors.push({ x, y: Math.random() * H * .35, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp, life: 1, len: 120 + Math.random() * 140 });
+  }
+
+  let scrollY = 0, heroH = 1;
+  const heroInner = $("#hero-inner");
+  function readScroll() {
+    scrollY = window.scrollY || 0;
+    heroH = ($("#top").offsetHeight) || innerHeight;
+  }
+
+  let t0 = performance.now(), last = t0;
+  function drawSky(now) {
+    const dt = Math.min(50, now - last); last = now;
+    const t = (now - t0) / 1000;
+    // smooth pointer
+    P.sx = lerp(P.sx, P.x, 0.22); P.sy = lerp(P.sy, P.y, 0.22);
+    if (finePointer && P.on) halo.style.transform = `translate3d(${P.sx}px, ${P.sy}px, 0)`;
+
+    // nebula colors ease toward chapter palette
+    const target = NEB[chapter] || NEB[0];
+    for (let i = 0; i < 3; i++) for (let k = 0; k < 3; k++) neb[i][k] = lerp(neb[i][k], target[i][k], 0.025);
+
+    ctx.globalCompositeOperation = "source-over";
+    ctx.fillStyle = "#06051a"; ctx.fillRect(0, 0, W, H);
+    const R = Math.max(W, H);
+    const blobs = [
+      [W * (0.22 + 0.06 * Math.sin(t * 0.05)), H * (0.28 + 0.05 * Math.cos(t * 0.04)), R * 0.62, 0.20],
+      [W * (0.82 + 0.05 * Math.cos(t * 0.045)), H * (0.62 + 0.06 * Math.sin(t * 0.035)), R * 0.58, 0.17],
+      [W * (0.55 + 0.08 * Math.sin(t * 0.03 + 2)), H * (1.0 + 0.05 * Math.sin(t * 0.05)), R * 0.55, 0.13],
+    ];
+    ctx.globalCompositeOperation = "lighter";
+    blobs.forEach(([x, y, r, a], i) => {
+      const [cr, cg, cb] = neb[i].map(Math.round);
+      const g = ctx.createRadialGradient(x - P.nx * 30, y - P.ny * 30, 0, x, y, r);
+      g.addColorStop(0, `rgba(${cr},${cg},${cb},${a})`);
+      g.addColorStop(0.5, `rgba(${cr},${cg},${cb},${a * 0.35})`);
+      g.addColorStop(1, `rgba(${cr},${cg},${cb},0)`);
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    });
+
+    // dive zoom while leaving the hero
+    const dive = reduce ? 0 : clamp(scrollY / heroH, 0, 1);
+    const ease = dive * dive * (3 - 2 * dive);
+    const cx = W / 2, cy = H / 2;
+    if (heroInner && !reduce) {
+      heroInner.style.transform = `translate3d(0, ${scrollY * 0.25}px, 0) scale(${1 - ease * 0.06})`;
+      heroInner.style.opacity = String(1 - ease * 0.85);
+    }
+
+    const RAD = 150, RAD2 = RAD * RAD;
+    const near = [];
+    for (const s of stars) {
+      if (!reduce) { s.x += s.z * 0.035 * dt * 0.06; if (s.x > W + 10) s.x -= W + 20; }
+      let bx = s.x + P.nx * -26 * s.z;
+      let by = ((s.y - scrollY * 0.06 * s.z) % H + H) % H + P.ny * -18 * s.z;
+      const zoom = 1 + ease * 2.4 * s.z;
+      bx = cx + (bx - cx) * zoom; by = cy + (by - cy) * zoom;
+
+      let tox = 0, toy = 0, tglow = 0;
+      if (P.on && !reduce) {
+        const dx = bx - P.sx, dy = by - P.sy, d2 = dx * dx + dy * dy;
+        if (d2 < RAD2) {
+          const d = Math.sqrt(d2) || 1, f = Math.pow(1 - d / RAD, 2);
+          tox = dx / d * f * 34 * s.z; toy = dy / d * f * 34 * s.z; tglow = f;
+          if (s.z > 0.35) near.push([d, s]);
+        }
+      }
+      s.ox = lerp(s.ox, tox, tox ? 0.14 : 0.05); s.oy = lerp(s.oy, toy, toy ? 0.14 : 0.05);
+      s.glow = lerp(s.glow, tglow, 0.12);
+      s.px = bx + s.ox; s.py = by + s.oy;
+      if (s.px < -20 || s.px > W + 20 || s.py < -20 || s.py > H + 20) continue;
+
+      const tw = reduce ? 0.85 : 0.6 + 0.4 * Math.sin(t * s.sp + s.ph);
+      const size = s.r * (1 + s.glow * 1.6) * (1 + ease * 0.8 * s.z);
+      ctx.globalAlpha = clamp(tw * (0.35 + s.z * 0.65) + s.glow * 0.6, 0, 1);
+      const sz = size * 6;
+      ctx.drawImage(sprite(s.c), s.px - sz / 2, s.py - sz / 2, sz, sz);
+    }
+    ctx.globalAlpha = 1;
+
+    // constellation lines to the cursor
+    if (near.length && !reduce) {
+      near.sort((a, b) => a[0] - b[0]);
+      const pts = near.slice(0, 12).map(n => n[1]);
+      ctx.lineWidth = 0.8;
+      for (let i = 0; i < pts.length; i++) {
+        const s = pts[i], d = Math.hypot(s.px - P.sx, s.py - P.sy), a = (1 - d / RAD) * 0.5;
+        const g = ctx.createLinearGradient(P.sx, P.sy, s.px, s.py);
+        g.addColorStop(0, `rgba(98,227,255,${a})`); g.addColorStop(1, `rgba(163,133,255,${a * 0.6})`);
+        ctx.strokeStyle = g; ctx.beginPath(); ctx.moveTo(P.sx, P.sy); ctx.lineTo(s.px, s.py); ctx.stroke();
+        for (let j = i + 1; j < pts.length; j++) {
+          const o = pts[j], dd = Math.hypot(o.px - s.px, o.py - s.py);
+          if (dd < 80) { ctx.strokeStyle = `rgba(200,190,255,${(1 - dd / 80) * 0.22})`; ctx.beginPath(); ctx.moveTo(s.px, s.py); ctx.lineTo(o.px, o.py); ctx.stroke(); }
+        }
+      }
+    }
+
+    // cursor trail + click sparks
+    for (let i = trail.length - 1; i >= 0; i--) {
+      const p = trail[i]; p.x += p.vx; p.y += p.vy; p.life -= dt / 900;
+      if (p.life <= 0) { trail.splice(i, 1); continue; }
+      ctx.globalAlpha = p.life * 0.8; const sz = p.r * 6 * p.life;
+      ctx.drawImage(sprite(p.c), p.x - sz / 2, p.y - sz / 2, sz, sz);
+    }
+    for (let i = sparks.length - 1; i >= 0; i--) {
+      const p = sparks[i]; p.life -= dt / (p.ring ? 700 : 1100);
+      if (p.life <= 0) { sparks.splice(i, 1); continue; }
+      if (p.ring) {
+        ctx.globalAlpha = p.life * 0.7; ctx.strokeStyle = "#a385ff"; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.arc(p.x, p.y, (1 - p.life) * 90 + 4, 0, Math.PI * 2); ctx.stroke();
+      } else {
+        p.x += p.vx; p.y += p.vy; p.vx *= 0.96; p.vy *= 0.96;
+        ctx.globalAlpha = p.life; const sz = p.r * 5 * p.life;
+        ctx.drawImage(sprite(p.c), p.x - sz / 2, p.y - sz / 2, sz, sz);
+      }
+    }
+    // shooting stars
+    if (!reduce) {
+      nextMeteor -= dt; if (nextMeteor < 0) { spawnMeteor(); nextMeteor = 4000 + Math.random() * 5000; }
+      for (let i = meteors.length - 1; i >= 0; i--) {
+        const m = meteors[i]; m.x += m.vx; m.y += m.vy; m.life -= dt / 1300;
+        if (m.life <= 0 || m.x < -300 || m.x > W + 300 || m.y > H + 300) { meteors.splice(i, 1); continue; }
+        const sp = Math.hypot(m.vx, m.vy), tx = m.x - m.vx / sp * m.len, ty = m.y - m.vy / sp * m.len;
+        const g = ctx.createLinearGradient(m.x, m.y, tx, ty);
+        g.addColorStop(0, `rgba(255,255,255,${m.life})`); g.addColorStop(0.3, `rgba(163,200,255,${m.life * 0.5})`); g.addColorStop(1, "rgba(163,133,255,0)");
+        ctx.globalAlpha = 1; ctx.strokeStyle = g; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(m.x, m.y); ctx.lineTo(tx, ty); ctx.stroke();
+      }
+    }
+    ctx.globalAlpha = 1; ctx.globalCompositeOperation = "source-over";
+  }
+
+  /* ---------- data ---------- */
+  let FALLBACK = null;
+  try { FALLBACK = JSON.parse($("#fallback-data").textContent); } catch (_) { FALLBACK = null; }
+  async function load(name) {
+    try {
+      const r = await fetch(name, { cache: "no-store" });
+      if (!r.ok) throw new Error(r.status);
+      return { data: await r.json(), live: true };
+    } catch (_) {
+      return { data: FALLBACK && FALLBACK[name], live: false };
+    }
+  }
+
+  const CLASS = {
+    known:  { label: "Known asteroid",  c: "--gold",  why: "Its position and time match an asteroid already in the catalogue. This is the proof that our pipeline finds real things." },
+    strong: { label: "Strong candidate", c: "--rose",  why: "Moves in a straight line at a believable speed and heading, and random noise rarely makes a track like this. No known asteroid matched it, so it is worth a follow-up look." },
+    weak:   { label: "Weak candidate",  c: "--cyan",  why: "The motion looks real, but random noise could produce a track like this one. Treat it as a maybe." },
+    noise:  { label: "Likely noise",    c: "--noise", why: "It heads in an unusual direction for an asteroid in this part of the sky, so it is most likely noise that happened to line up." },
+  };
+  const ORDER = ["strong", "known", "weak", "noise"];
+  const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  function classify(v) {
+    const s = (v || "").toLowerCase();
+    if (s.startsWith("known")) return "known";
+    if (s.startsWith("strong")) return "strong";
+    if (s.startsWith("weak")) return "weak";
+    return "noise";
+  }
+  function knownName(v) { const m = /KNOWN:\s*(.+)$/i.exec(v || ""); return m ? m[1].trim() : null; }
+  const compass = d => ["N", "NE", "E", "SE", "S", "SW", "W", "NW"][Math.round(((d % 360) + 360) % 360 / 45) % 8];
+  const fmt = (v, n = 2) => Number(v).toFixed(n);
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+  /* ---------- sky map ---------- */
+  const map = $("#map"), mctx = map.getContext("2d");
+  const M = { w: 0, h: 0, dpr: 1, cands: [], area: null, filters: { known: true, strong: true, weak: true, noise: true },
+    trailH: 10, sel: null, hover: null, mouse: null, bg: [], visible: false };
+
+  function sizeMap() {
+    const r = map.getBoundingClientRect();
+    M.w = r.width; M.h = r.height; M.dpr = Math.min(devicePixelRatio || 1, 2);
+    map.width = Math.round(M.w * M.dpr); map.height = Math.round(M.h * M.dpr);
+    mctx.setTransform(M.dpr, 0, 0, M.dpr, 0, 0);
+    if (reduce) drawMap(0);
+  }
+  // seeded decoration
+  function rng(seed) { return () => (seed = (seed * 16807) % 2147483647) / 2147483647; }
+  { const r = rng(42); M.bg = Array.from({ length: 260 }, () => ({ x: r(), y: r(), a: 0.15 + r() * 0.5, s: 0.4 + r() * 1.1, ph: r() * 6.28 })); }
+
+  function proj(ra, dec) {
+    const a = M.area; const cosd = Math.cos(a.dec0 * Math.PI / 180);
+    const xd = -(ra - a.ra0) * cosd, yd = dec - a.dec0;
+    const span = a.size * 1.12, s = Math.min(M.w, M.h) / span;
+    return [M.w / 2 + xd * s, M.h / 2 - yd * s, s];
+  }
+  function unproj(x, y) {
+    const a = M.area; const cosd = Math.cos(a.dec0 * Math.PI / 180);
+    const span = a.size * 1.12, s = Math.min(M.w, M.h) / span;
+    return [a.ra0 - (x - M.w / 2) / s / cosd, a.dec0 - (y - M.h / 2) / s];
+  }
+
+  function drawMap(time) {
+    if (!M.area || !M.w) return;
+    const c = mctx, t = time / 1000;
+    c.clearRect(0, 0, M.w, M.h);
+    // decoration stars
+    for (const b of M.bg) {
+      c.globalAlpha = b.a * (reduce ? 1 : 0.75 + 0.25 * Math.sin(t * 1.3 + b.ph));
+      c.fillStyle = "#cfd6ff"; c.beginPath(); c.arc(b.x * M.w, b.y * M.h, b.s, 0, 6.283); c.fill();
+    }
+    c.globalAlpha = 1;
+    // grid (0.25° steps)
+    const a = M.area, half = a.size / 2;
+    c.font = `10px ${css("--f-mono")}`; c.lineWidth = 1;
+    const step = 0.25, cosd = Math.cos(a.dec0 * Math.PI / 180);
+    const raHalf = half / cosd * 1.12;
+    for (let ra = Math.ceil((a.ra0 - raHalf) / step) * step; ra <= a.ra0 + raHalf; ra += step) {
+      const [x] = proj(ra, a.dec0);
+      c.strokeStyle = "rgba(160,150,255,0.09)"; c.beginPath(); c.moveTo(x, 0); c.lineTo(x, M.h); c.stroke();
+      if (x > 48 && x < M.w - 40) { c.fillStyle = "rgba(169,164,212,0.55)"; c.fillText(ra.toFixed(2) + "°", x + 3, 14); }
+    }
+    for (let dec = Math.ceil((a.dec0 - half * 1.12) / step) * step; dec <= a.dec0 + half * 1.12; dec += step) {
+      const [, y] = proj(a.ra0, dec);
+      c.strokeStyle = "rgba(160,150,255,0.09)"; c.beginPath(); c.moveTo(0, y); c.lineTo(M.w, y); c.stroke();
+      if (y > 26 && y < M.h - 30) { c.fillStyle = "rgba(169,164,212,0.55)"; c.fillText((dec >= 0 ? "+" : "−") + Math.abs(dec).toFixed(2) + "°", 4, y - 4); }
+    }
+    // search box
+    const [x0, y0] = proj(a.ra0 + half / cosd, a.dec0 + half), [x1, y1] = proj(a.ra0 - half / cosd, a.dec0 - half);
+    c.setLineDash([4, 6]); c.strokeStyle = "rgba(98,227,255,0.35)"; c.strokeRect(x0, y0, x1 - x0, y1 - y0); c.setLineDash([]);
+    c.fillStyle = "rgba(98,227,255,0.6)"; { const lbl = "search area"; c.fillText(lbl, x1 - 6 - c.measureText(lbl).width, y0 + 14); }
+
+    // candidates
+    const loop = reduce ? 0.5 : (t % 4.5) / 4.5;
+    c.globalCompositeOperation = "lighter";
+    for (const k of M.cands) {
+      if (!M.filters[k.cls]) continue;
+      const col = css(CLASS[k.cls].c);
+      const [px, py, s] = proj(k.ra, k.dec);
+      const dxh = -k.vra / 3600 * s, dyh = -k.vdec / 3600 * s; // px per hour (E left, N up)
+      const L = M.trailH;
+      const sx = px - dxh * L / 2, sy = py - dyh * L / 2, ex = px + dxh * L / 2, ey = py + dyh * L / 2;
+      const hx = lerp(sx, ex, loop), hy = lerp(sy, ey, loop);
+      const isSel = M.sel === k.id, isHov = M.hover === k.id;
+      // full path, faint
+      c.strokeStyle = col; c.globalAlpha = isSel ? 0.35 : 0.14; c.lineWidth = 1;
+      c.setLineDash([2, 4]); c.beginPath(); c.moveTo(sx, sy); c.lineTo(ex, ey); c.stroke(); c.setLineDash([]);
+      // comet tail
+      const g = c.createLinearGradient(hx, hy, sx, sy);
+      g.addColorStop(0, col); g.addColorStop(1, "rgba(0,0,0,0)");
+      c.globalAlpha = 0.9; c.strokeStyle = g; c.lineWidth = isSel ? 3 : 2; c.lineCap = "round";
+      c.beginPath(); c.moveTo(sx, sy); c.lineTo(hx, hy); c.stroke();
+      // head
+      const base = 3 + clamp(k.flux, 0, 1.2) * 3;
+      const pulse = reduce ? 1 : 1 + 0.25 * Math.sin(t * 3 + k.id);
+      const sz = base * (isSel || isHov ? 9 : 6) * pulse;
+      c.globalAlpha = 1; c.drawImage(sprite(col.startsWith("#") ? col : "#ffffff"), hx - sz / 2, hy - sz / 2, sz, sz);
+      k.sx = hx; k.sy = hy; k.px = px; k.py = py;
+    }
+    c.globalCompositeOperation = "source-over";
+    // selection rings
+    for (const k of M.cands) {
+      if (!M.filters[k.cls] || (M.sel !== k.id && M.hover !== k.id)) continue;
+      const col = css(CLASS[k.cls].c);
+      c.globalAlpha = M.sel === k.id ? 0.9 : 0.6; c.strokeStyle = col; c.lineWidth = 1.2;
+      const rr = 16 + (reduce ? 0 : 3 * Math.sin(t * 4));
+      c.beginPath(); c.arc(k.sx, k.sy, rr, 0, 6.283); c.stroke();
+      c.fillStyle = col; c.font = `11px ${css("--f-mono")}`;
+      const label = k.name || `#${k.id}`;
+      const tx = k.sx + 22 + c.measureText(label).width > M.w - 8 ? k.sx - 22 - c.measureText(label).width : k.sx + 22;
+      c.fillText(label, tx, k.sy + 4);
+    }
+    c.globalAlpha = 1;
+    // crosshair
+    if (M.mouse) {
+      const [mx, my] = M.mouse;
+      c.strokeStyle = "rgba(98,227,255,0.35)"; c.lineWidth = 1;
+      c.beginPath(); c.moveTo(mx, 0); c.lineTo(mx, my - 12); c.moveTo(mx, my + 12); c.lineTo(mx, M.h);
+      c.moveTo(0, my); c.lineTo(mx - 12, my); c.moveTo(mx + 12, my); c.lineTo(M.w, my); c.stroke();
+      c.beginPath(); c.arc(mx, my, 8, 0, 6.283); c.stroke();
+    }
+  }
+
+  function pick(x, y) {
+    let best = null, bd = 26;
+    for (const k of M.cands) {
+      if (!M.filters[k.cls] || k.sx == null) continue;
+      const d = Math.min(Math.hypot(k.sx - x, k.sy - y), Math.hypot(k.px - x, k.py - y));
+      if (d < bd) { bd = d; best = k; }
+    }
+    return best;
+  }
+  const coordEl = $("#map-coord");
+  map.addEventListener("pointermove", e => {
+    const r = map.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+    M.mouse = [x, y];
+    const h = pick(x, y); M.hover = h ? h.id : null;
+    map.style.cursor = h ? "pointer" : "crosshair";
+    if (M.area) { const [ra, dec] = unproj(x, y); coordEl.textContent = `RA ${ra.toFixed(3)}° · Dec ${dec >= 0 ? "+" : "−"}${Math.abs(dec).toFixed(3)}°`; }
+    if (reduce) drawMap(0);
+  });
+  map.addEventListener("pointerleave", () => { M.mouse = null; M.hover = null; coordEl.textContent = "RA — · Dec —"; if (reduce) drawMap(0); });
+  map.addEventListener("click", e => {
+    const r = map.getBoundingClientRect(), h = pick(e.clientX - r.left, e.clientY - r.top);
+    if (h) select(h.id);
+  });
+
+  function renderLegend() {
+    const el = $("#legend"); el.innerHTML = "";
+    for (const cls of ORDER) {
+      const n = M.cands.filter(k => k.cls === cls).length; if (!n) continue;
+      const b = document.createElement("button");
+      b.className = "chip"; b.type = "button"; b.setAttribute("aria-pressed", String(M.filters[cls]));
+      b.style.setProperty("--c", `var(${CLASS[cls].c})`);
+      b.innerHTML = `<span class="dot"></span>${CLASS[cls].label}<span class="n">${n}</span>`;
+      b.addEventListener("click", () => { M.filters[cls] = !M.filters[cls]; b.setAttribute("aria-pressed", String(M.filters[cls])); if (reduce) drawMap(0); });
+      el.appendChild(b);
+    }
+  }
+
+  function select(id) {
+    M.sel = id;
+    const k = M.cands.find(c => c.id === id); if (!k) return;
+    const C = CLASS[k.cls];
+    const title = k.name ? k.name : (k.cls === "strong" ? `Candidate #${k.id}` : `Track #${k.id}`);
+    $("#detail").innerHTML = `
+      <span class="badge" style="--c: var(${C.c})">${C.label}</span>
+      <h3>${esc(title)}</h3>
+      <p class="why">${C.why}</p>
+      <dl class="kv">
+        <dt>Speed</dt><dd>${fmt(k.speed, 1)}″ per hour<small>arcseconds of sky per hour</small></dd>
+        <dt>Heading</dt><dd>${fmt(k.dir, 0)}° · ${compass(k.dir)}<small>0° is north, 90° is east</small></dd>
+        <dt>Seen in</dt><dd>${k.seen} of ${k.covering} frames</dd>
+        <dt>Path wobble</dt><dd>${fmt(k.wobble, 2)}″<small>how far the dots stray from a straight line</small></dd>
+        <dt>Noise look-alikes</dt><dd>${fmt(k.lookalikes, 2)}<small>expected fake tracks this good</small></dd>
+        <dt>Position</dt><dd>RA ${fmt(k.ra, 3)}° · Dec ${k.dec >= 0 ? "+" : "−"}${fmt(Math.abs(k.dec), 3)}°</dd>
+      </dl>
+      <div class="picker" role="group" aria-label="Pick a track">${M.cands.map(c =>
+        `<button type="button" data-id="${c.id}" style="--c: var(${CLASS[c.cls].c})" aria-current="${c.id === id}"><span class="dot"></span>#${c.id}</button>`).join("")}</div>`;
+    $("#detail").querySelectorAll(".picker button").forEach(b => b.addEventListener("click", () => {
+      const cid = Number(b.dataset.id), cc = M.cands.find(x => x.id === cid);
+      if (cc && !M.filters[cc.cls]) { M.filters[cc.cls] = true; renderLegend(); }
+      select(cid);
+    }));
+    if (reduce) drawMap(0);
+  }
+
+  const trailIn = $("#trail"), trailOut = $("#trail-out");
+  trailIn.addEventListener("input", () => { M.trailH = Number(trailIn.value); trailOut.textContent = `${M.trailH} h`; if (reduce) drawMap(0); });
+
+  /* ---------- blink cards ---------- */
+  function renderBlinks() {
+    const knowns = M.cands.filter(k => k.cls === "known");
+    const el = $("#blinks"); el.innerHTML = "";
+    knowns.forEach(k => {
+      const m = /^(\d+)\s+([A-Za-z'’\- ]+?)\s*(\(|$)/.exec(k.name || "");
+      if (!m) return;
+      const slug = `${m[1]}_${m[2].trim().replace(/\s+/g, "_")}`;
+      const card = document.createElement("article"); card.className = "blink rise in";
+      card.innerHTML = `
+        <div class="media"><img src="figures/${slug}_blink.gif" alt="Animated blink of ${esc(k.name)} moving between SPHEREx frames"></div>
+        <div class="body">
+          <span class="badge" style="--c: var(--gold)">Matched in catalogue</span>
+          <h3>${esc(k.name)}</h3>
+          <p class="muted">Moving ${fmt(k.speed, 1)}″ per hour toward the ${compass(k.dir)}. Seen in ${k.seen} of ${k.covering} frames.</p>
+          <div class="toggle" role="group" aria-label="View">
+            <button type="button" aria-pressed="true" data-v="blink">Blink</button>
+            <button type="button" aria-pressed="false" data-v="gone">Then &amp; gone</button>
+          </div>
+        </div>`;
+      const img = card.querySelector("img"), media = card.querySelector(".media");
+      card.querySelectorAll(".toggle button").forEach(b => b.addEventListener("click", () => {
+        card.querySelectorAll(".toggle button").forEach(o => o.setAttribute("aria-pressed", String(o === b)));
+        const gone = b.dataset.v === "gone";
+        img.src = `figures/${slug}_${gone ? "then_gone.png" : "blink.gif"}`;
+        img.alt = gone ? `Before and after images showing ${k.name} leaving its spot` : `Animated blink of ${k.name} moving between SPHEREx frames`;
+        media.style.aspectRatio = gone ? "1200 / 630" : "1 / 1";
+      }));
+      // gentle tilt toward the cursor
+      if (finePointer && !reduce) {
+        card.addEventListener("pointermove", e => {
+          const r = card.getBoundingClientRect(), x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5;
+          card.style.transform = `perspective(900px) rotateY(${x * 6}deg) rotateX(${-y * 6}deg)`;
+        });
+        card.addEventListener("pointerleave", () => { card.style.transform = ""; });
+      }
+      el.appendChild(card);
+    });
+  }
+
+  /* ---------- planet x ---------- */
+  function renderPlanetX(px) {
+    if (!px) return;
+    const vs = px.visits || [];
+    const mjds = vs.map(v => v.mjd), lo = Math.min(...mjds), hi = Math.max(...mjds);
+    const rail = $("#rail");
+    const fmtDate = s => new Date(s).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+    const june = vs.filter(v => v.mjd - lo < 30), dec = vs.filter(v => v.mjd - lo >= 30);
+    const pos = m => 6 + (m - lo) / (hi - lo || 1) * 88;
+    vs.forEach(v => {
+      const d = document.createElement("span"); d.className = "visit";
+      d.style.left = pos(v.mjd) + "%";
+      d.style.setProperty("--c", v.mjd - lo < 30 ? "var(--cyan)" : "var(--rose)");
+      d.title = `${v.obs_id} · ${v.utc.slice(0, 10)}`;
+      rail.appendChild(d);
+    });
+    const lab = (list, left, align) => {
+      if (!list.length) return;
+      const l = document.createElement("span"); l.className = "visit-label";
+      l.style.left = left + "%"; if (align === "end") l.style.transform = "translateX(-100%)";
+      const yr = list[0].utc.slice(0, 4);
+      l.innerHTML = list.length > 1
+        ? `<b>${fmtDate(list[0].utc)}–${fmtDate(list[list.length - 1].utc).replace(/^\w+ /, "")}, ${yr}</b>${list.length} visits`
+        : `<b>${fmtDate(list[0].utc)}, ${yr}</b>1 visit`;
+      rail.appendChild(l);
+    };
+    lab(june, pos(june[0] ? june[0].mjd : lo) - 2, "start");
+    lab(dec, pos(dec[0] ? dec[0].mjd : hi) + 2, "end");
+    const days = Math.round(hi - lo);
+    $("#gap-label").textContent = `${days} days apart`;
+
+    const m = px.method || {};
+    if (m.pair_shift_deg) $("#logic-3").textContent = `It should reappear ${m.pair_shift_deg[0]}° to ${m.pair_shift_deg[1]}° away, with a brightness between ⅓× and 3× of its June self.`;
+    const pairs = (px.pairs || []).length, jo = (px.june_only || []).length, de = (px.december_only || []).length;
+    $("#results").innerHTML = `
+      <div class="result"><span class="v">${jo}</span><span class="k">June-only sources</span><p>Steady in June, gone in December. Every Planet X would start here.</p></div>
+      <div class="result"><span class="v">${de}</span><span class="k">December-only source${de === 1 ? "" : "s"}</span><p>Appeared in December${de ? ", with no June partner to pair it with" : ""}.</p></div>
+      <div class="result hi"><span class="v">${pairs}</span><span class="k">Matched pairs</span><p>${fmt(px.pairs_expected_by_chance ?? 0, 1)} expected by pure chance, across ${fmt(px.area_searched_sq_deg, 2)} square degrees.</p></div>`;
+    const V = px.approx_brightness_limit_V;
+    if (pairs === 0 && V) {
+      $("#verdict-h").innerHTML = `No Planet X here, <em>down to magnitude ${V}.</em>`;
+      const factor = Math.pow(10, 0.4 * (V - 6));
+      $("#verdict-p").textContent = `That limit is about ${Math.round(factor / 1000) * 1000 > 0 ? (Math.round(factor / 1000) * 1000).toLocaleString("en-US") : Math.round(factor)} times fainter than the dimmest star you can see with your eyes on a dark night. A clear "no" with a measured limit is a real result: it tells the next search where not to look.`;
+    } else if (pairs > 0) {
+      $("#verdict-h").innerHTML = `${pairs} possible <em>Planet X pair${pairs > 1 ? "s" : ""}.</em>`;
+      $("#verdict-p").textContent = "A June-only source has a matching December-only partner. It needs follow-up observations before anyone can call it a planet.";
+    }
+  }
+
+  async function init() {
+    const [cr, pr] = await Promise.all([load("candidates.json"), load("planetx_search.json")]);
+    if (!cr.live || !pr.live) $("#data-note").hidden = false;
+    const cd = cr.data, pd = pr.data;
+    if (cd) {
+      const a = cd.search_area || {};
+      M.area = { ra0: a.center_ra_deg, dec0: a.center_dec_deg, size: a.size_deg || 1.5 };
+      M.cands = (cd.candidates || []).map(k => ({
+        id: k.id, ra: k.ra_deg, dec: k.dec_deg, speed: k.speed_arcsec_per_hour, vra: k.speed_ra_arcsec_per_hour, vdec: k.speed_dec_arcsec_per_hour,
+        dir: k.direction_deg, wobble: k.path_wobble_arcsec, seen: k.frames_seen, covering: k.frames_covering, lookalikes: k.noise_lookalikes_expected,
+        flux: k.flux, verdict: k.verdict, cls: classify(k.verdict), name: knownName(k.verdict),
+      }));
+      $("#f-area").textContent = `${M.area.size}° × ${M.area.size}°`;
+      const f = cd.frame_mjds || [];
+      if (f.length) { $("#f-frames").textContent = `${f.length} frames`; $("#f-span").textContent = `Over ${((f[f.length - 1] - f[0]) * 1440).toFixed(1)} minutes`; }
+      if (cd.band) $("#f-band").textContent = cd.band.replace(/^SPHEREx-/, "");
+      if (cd.method && cd.method.detection_threshold_sigma) { const s = cd.method.detection_threshold_sigma; $("#f-sigma").textContent = `${s}σ`; $("#f-sigma").nextElementSibling.textContent = `${s}× brighter than the noise`; }
+      const n = M.cands.length; const word = ["Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve"][n] || String(n);
+      $("#movers-h").innerHTML = `${word} dot${n === 1 ? "" : "s"} that <em>refused to sit still</em>`;
+      if (cd.generated_utc) $("#gen").textContent = `Results generated ${cd.generated_utc.slice(0, 10)} · visit ${cd.visit || ""}`;
+      if (cd.source) $("#credit").textContent = `Data: ${cd.source}.`;
+      renderLegend();
+      const first = M.cands.find(k => k.cls === "strong") || M.cands[0];
+      if (first) select(first.id);
+      renderBlinks();
+      sizeMap();
+    }
+    renderPlanetX(pd);
+  }
+
+  /* ---------- hero readout: pointer → sky coords ---------- */
+  const readout = $("#readout");
+  let roTick = 0;
+  function updateReadout() {
+    if (!P.on || !M.area || scrollY > heroH * 0.6) return;
+    if (++roTick % 4) return;
+    const s = M.area.size, ra = M.area.ra0 - (P.nx) * s * 1.6, dec = M.area.dec0 - (P.ny) * s;
+    readout.innerHTML = `pointer · <b>RA ${ra.toFixed(3)}°</b> · <b>Dec ${dec >= 0 ? "+" : "−"}${Math.abs(dec).toFixed(3)}°</b>`;
+  }
+
+  /* ---------- chapters, reveal, rail ---------- */
+  const chapters = [...document.querySelectorAll("[data-chapter]")];
+  const railLinks = [...document.querySelectorAll(".rail-nav a")];
+  function updateChapter() {
+    const mid = innerHeight * 0.45; let cur = 0;
+    chapters.forEach((el, i) => { if (el.getBoundingClientRect().top < mid) cur = i; });
+    if (cur !== chapter) chapter = cur;
+    railLinks.forEach((a, i) => a.classList.toggle("on", i === chapter));
+  }
+  if ("IntersectionObserver" in window && !reduce) {
+    const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { rootMargin: "0px 0px -8% 0px" });
+    document.querySelectorAll(".rise").forEach(el => io.observe(el));
+    const mo = new IntersectionObserver(es => es.forEach(e => { M.visible = e.isIntersecting; }));
+    mo.observe(map);
+  } else {
+    document.querySelectorAll(".rise").forEach(el => el.classList.add("in"));
+    M.visible = true;
+  }
+  // anything already on screen at load is shown immediately
+  requestAnimationFrame(() => document.querySelectorAll(".rise").forEach(el => { if (el.getBoundingClientRect().top < innerHeight) el.classList.add("in"); }));
+
+  addEventListener("scroll", () => { readScroll(); updateChapter(); if (reduce) drawSky(performance.now()); }, { passive: true });
+  addEventListener("resize", () => { resizeSky(); readScroll(); sizeMap(); if (reduce) drawSky(performance.now()); });
+  if ("ResizeObserver" in window) new ResizeObserver(() => sizeMap()).observe(map);
+
+  resizeSky(); readScroll(); updateChapter();
+  function frame(now) {
+    if (!document.hidden) {
+      drawSky(now);
+      if (M.visible) drawMap(now);
+      updateReadout();
+    }
+    requestAnimationFrame(frame);
+  }
+  if (reduce) { drawSky(performance.now()); } else { requestAnimationFrame(frame); }
+  init().then(() => { if (reduce) { drawMap(0); drawSky(performance.now()); } });
+})();
+</script>
+
+</body>
+</html>
