@@ -1,0 +1,52 @@
+{
+  "generated_utc": "2026-10-19T20:28:51+00:00",
+  "source": "SPHEREx QR2 spectral images (NASA/IPAC IRSA)",
+  "band": "SPHEREx-D4",
+  "visits": [
+    {
+      "obs_id": "2025W25_1B_0085_1",
+      "mjd": 60842.377974,
+      "utc": "2025-06-16T09:04:16.954"
+    },
+    {
+      "obs_id": "2025W25_2A_0500_1",
+      "mjd": 60848.016684,
+      "utc": "2025-06-22T00:24:01.498"
+    },
+    {
+      "obs_id": "2025W26_2A_0020_1",
+      "mjd": 60852.568537,
+      "utc": "2025-06-26T13:38:41.597"
+    },
+    {
+      "obs_id": "2025W50_2A_0774_1",
+      "mjd": 61023.621067,
+      "utc": "2025-12-14T14:54:20.189"
+    }
+  ],
+  "area_searched_sq_deg": 0.3852291666666667,
+  "method": {
+    "steady_in": "all 3 June visits (5x noise, 6 arcsec match)",
+    "absent_in": "December visit (3x noise)",
+    "brightness_cut": "brighter than the median source of the image",
+    "pair_shift_deg": [
+      0.1,
+      0.4
+    ],
+    "pair_flux_ratio": [
+      0.3333333333333333,
+      3
+    ]
+  },
+  "approx_brightness_limit_V": 17,
+  "june_only": [],
+  "december_only": [
+    {
+      "ra_deg": 0.6404936725102175,
+      "dec_deg": 0.18616441533851938,
+      "flux": 0.8360643982887268
+    }
+  ],
+  "pairs": [],
+  "pairs_expected_by_chance": 0.0
+}
